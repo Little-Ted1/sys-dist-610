@@ -114,6 +114,17 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        /* 🎯 OCULTAR EL PUNTITO DE AVANCE Y LA BARRA DE TIEMPO (Para streams en vivo) */
+        video::-webkit-media-controls-timeline,
+        video::-webkit-media-controls-current-time-display,
+        video::-webkit-media-controls-time-remaining-display {
+            display: none !important;
+        }
+
+        /* Reacomoda los botones restantes (Play y Volumen) para que se vean centrados y limpios */
+        video::-webkit-media-controls-panel {
+            padding: 0 20px !important;
+        }
     </style>
 </head>
 <body>
