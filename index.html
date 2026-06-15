@@ -6,63 +6,28 @@
     <title>GABO PLAY - SUITE WEB</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body {
-            background-color: #0c0c0c;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0; padding: 0;
-        }
-        
-        /* 🔐 PANTALLA DE LOGEO / CANDADO */
-        #pantalla-bloqueo {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #0c0c0c;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 9999;
-        }
-        .login-box {
-            background-color: #141414;
-            padding: 40px; border-radius: 8px; border: 2px solid #222222;
-            text-align: center; box-shadow: 0 4px 25px rgba(0,0,0,0.8);
-            max-width: 350px; width: 100%;
-        }
-        .login-box h2 { color: #FF3333; margin-bottom: 20px; font-size: 24px; letter-spacing: 1px; }
-        .login-box p { color: #888888; font-size: 14px; margin-bottom: 25px; }
-        .login-box input {
-            width: 85%; padding: 12px; background-color: #0c0c0c; border: 1px solid #444444;
-            color: white; font-size: 18px; text-align: center; border-radius: 4px; outline: none;
-            margin-bottom: 20px; letter-spacing: 3px;
-        }
-        .login-box input:focus { border-color: #FF3333; }
-        .login-box button {
-            background-color: #FF3333; color: white; border: none; padding: 12px 30px;
-            font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer;
-            transition: background 0.2s;
-        }
-        .login-box button:hover { background-color: #cc2424; }
+        body { background-color: #0c0c0c; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        #pantalla-bloqueo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #0c0c0c; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        .login-box { background-color: #141414; padding: 40px; border-radius: 8px; border: 2px solid #222222; text-align: center; box-shadow: 0 4px 25px rgba(0,0,0,0.8); max-width: 350px; width: 100%; }
+        .login-box h2 { color: #FF3333; margin-bottom: 20px; font-size: 24px; }
+        .login-box input { width: 85%; padding: 12px; background-color: #0c0c0c; border: 1px solid #444444; color: white; font-size: 18px; text-align: center; border-radius: 4px; outline: none; margin-bottom: 20px; }
+        .login-box button { background-color: #FF3333; color: white; border: none; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
         #mensaje-error { color: #FF3333; font-size: 14px; margin-top: 15px; display: none; }
-
-        /* 📺 INTERFAZ PRINCIPAL */
         #contenido-principal { display: none; }
         header { background-color: #141414; padding: 15px 20px; border-bottom: 2px solid #FF3333; }
-        header h1 { margin: 0; font-size: 22px; color: #FF3333; font-weight: bold; }
-        header h1 span { color: #ffffff; font-size: 13px; margin-left: 10px; letter-spacing: 2px; }
+        header h1 { margin: 0; font-size: 22px; color: #FF3333; }
         .container { max-width: 1300px; margin: 0 auto; padding: 20px; }
-        .player-box { background-color: #141414; padding: 15px; border-radius: 8px; margin-bottom: 35px; box-shadow: 0 4px 20px rgba(0,0,0,0.7); text-align: center; }
-        .video-container { width: 100%; max-width: 850px; margin: 0 auto; position: relative; background-color: #000000; border-radius: 6px; overflow: hidden; }
+        .player-box { background-color: #141414; padding: 15px; border-radius: 8px; margin-bottom: 35px; text-align: center; }
+        .video-container { width: 100%; max-width: 850px; margin: 0 auto; background-color: #000000; border-radius: 6px; overflow: hidden; }
         video { width: 100%; display: block; max-height: 480px; }
-        video::-webkit-media-controls-timeline,
-        video::-webkit-media-controls-current-time-display,
-        video::-webkit-media-controls-time-remaining-display { display: none !important; }
+        video::-webkit-media-controls-timeline, video::-webkit-media-controls-current-time-display, video::-webkit-media-controls-time-remaining-display { display: none !important; }
         video::-webkit-media-controls-panel { padding: 0 20px !important; }
-        #canalActual { margin: 15px 0 5px 0; font-size: 18px; color: #ffffff; font-weight: 600; }
-        .seccion-titulo { border-left: 4px solid #FF3333; padding-left: 12px; font-size: 19px; margin-top: 35px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; margin-bottom: 20px; }
-        .tarjeta { background-color: #141414; border-radius: 6px; padding: 12px; text-align: center; cursor: pointer; transition: transform 0.2s, background-color 0.2s; border: 1px solid #222222; }
-        .tarjeta:hover { transform: scale(1.04); background-color: #1c1c1c; border-color: #FF3333; }
-        .tarjeta img { width: 100%; height: 85px; object-fit: contain; margin-bottom: 8px; background-color: #0a0a0a; border-radius: 4px; }
-        .tarjeta h3 { margin: 5px 0 0 0; font-size: 14px; color: #dddddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #canalActual { margin: 15px 0 5px 0; font-size: 18px; }
+        .seccion-titulo { border-left: 4px solid #FF3333; padding-left: 12px; font-size: 19px; margin-top: 35px; text-transform: uppercase; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; margin-top: 15px; }
+        .tarjeta { background-color: #141414; border-radius: 6px; padding: 12px; text-align: center; cursor: pointer; border: 1px solid #222222; }
+        .tarjeta:hover { transform: scale(1.04); border-color: #FF3333; }
+        .tarjeta img { width: 100%; height: 85px; object-fit: contain; }
     </style>
 </head>
 <body>
@@ -70,113 +35,95 @@
     <div id="pantalla-bloqueo">
         <div class="login-box">
             <h2>GABO PLAY</h2>
-            <p>SISTEMA RESTRINGIDO • AUTENTICACIÓN BACKEND</p>
-            <input type="password" id="inputClave" placeholder="TOKEN DE ACCESO" maxlength="16">
+            <p>CONEXIÓN ENCRIPTADA POST</p>
+            <input type="password" id="inputClave" placeholder="TOKEN DE ACCESO">
             <br>
             <button onclick="solicitarAcceso()">INGRESAR</button>
-            <div id="mensaje-error">⚠️ Token inválido o expirado. Acceso denegado.</div>
+            <div id="mensaje-error">⚠️ Credenciales Inválidas. Bloqueado por CORS/Token.</div>
         </div>
     </div>
 
     <div id="contenido-principal">
-        <header>
-            <h1>GABO PLAY <span>SUITE WEB</span></h1>
-        </header>
+        <header><h1>GABO PLAY <span>SUITE WEB</span></h1></header>
         <div class="container">
             <div class="player-box">
                 <div class="video-container">
                     <video id="videoPlayer" controls autoplay poster="https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png"></video>
                 </div>
-                <h2 id="canalActual">Selecciona un canal o emisora para sintonizar... 📡</h2>
+                <h2 id="canalActual">Selecciona transmisión... 📡</h2>
             </div>
-            <div id="zona-tv" style="display: none;"><h2 class="seccion-titulo">📺 Canales de Televisión</h2><div class="grid" id="grid-tv"></div></div>
-            <div id="zona-radio" style="display: none;"><h2 class="seccion-titulo">📻 Emisoras de Radio FM</h2><div class="grid" id="grid-radio"></div></div>
-            <div id="zona-cine" style="display: none;"><h2 class="seccion-titulo">🎬 Mi Cine en Casa</h2><div class="grid" id="grid-cine"></div></div>
+            <div id="zona-tv" style="display: none;"><h2 class="seccion-titulo">📺 Televisión</h2><div class="grid" id="grid-tv"></div></div>
+            <div id="zona-radio" style="display: none;"><h2 class="seccion-titulo">📻 Radios</h2><div class="grid" id="grid-radio"></div></div>
+            <div id="zona-cine" style="display: none;"><h2 class="seccion-titulo">🎬 Cine</h2><div class="grid" id="grid-cine"></div></div>
         </div>
     </div>
 
     <script>
-        // 🎯 TU URL DE VERCEL INTEGRADA COMO ÚNICO ENLACE
         const API_URL = "https://gaboplay-backend.vercel.app/api/canales";
 
-        document.getElementById('inputClave').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') solicitarAcceso();
-        });
+        document.getElementById('inputClave').addEventListener('keypress', (e) => { if (e.key === 'Enter') solicitarAcceso(); });
 
         function solicitarAcceso() {
             const token = document.getElementById('inputClave').value;
             
-            // 🚀 Mandamos el token de forma remota al servidor de Python
-            fetch(`${API_URL}?token=${token}`)
-                .then(res => {
-                    if (!res.ok) throw new Error("No autorizado");
-                    return res.json();
-                })
-                .then(canales => {
-                    // Si el servidor responde con los datos, guardamos el token de sesión y arrancamos
-                    sessionStorage.setItem('session_token_bunker', token);
-                    desbloquearBunker(canales);
-                })
-                .catch(err => {
-                    document.getElementById('mensaje-error').style.display = "block";
-                    document.getElementById('inputClave').value = "";
-                });
+            // 🛡️ ENVIAMOS EL TOKEN PROTEGIDO DENTRO DEL BODY EN UN POST
+            fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token: token })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Acceso Denegado");
+                return res.json();
+            })
+            .then(canales => {
+                // Al validar con éxito, destruimos el rastro de la contraseña de la RAM de inmediato
+                document.getElementById('inputClave').value = ""; 
+                desbloquearBunker(canales);
+            })
+            .catch(err => {
+                document.getElementById('mensaje-error').style.display = "block";
+                document.getElementById('inputClave').value = "";
+            });
         }
 
         function desbloquearBunker(datosCanales) {
             document.getElementById('pantalla-bloqueo').style.display = "none";
             document.getElementById('contenido-principal').style.display = "block";
-            inicializarEcosistema(datosCanales);
-        }
-
-        // Auto-login al refrescar si la sesión de la pestaña sigue activa
-        const tokenActivo = sessionStorage.getItem('session_token_bunker');
-        if (tokenActivo) {
-            fetch(`${API_URL}?token=${tokenActivo}`)
-                .then(res => res.ok ? res.json() : null)
-                .then(canales => { if(canales) desbloquearBunker(canales); });
-        }
-
-        function inicializarEcosistema(canales) {
+            
             const video = document.getElementById('videoPlayer');
             const hls = new Hls();
 
             window.reproducir = function(url, nombre, categoria) {
-                const icono = categoria === "RADIO" ? "📻" : (categoria === "PELICULA" ? "🎬" : "📺");
-                document.getElementById('canalActual').innerText = "Sintonizando: " + nombre + " " + icono + " ⚡";
+                document.getElementById('canalActual').innerText = "Sintonizando: " + nombre + " ⚡";
                 hls.detachMedia(); video.src = "";
 
-                if (categoria === "RADIO" || url.includes("mp3") || url.includes("aac") || !url.includes(".m3u8")) {
+                if (categoria === "RADIO" || !url.includes(".m3u8")) {
                     video.src = url; video.play().catch(o => {});
                 } else {
                     if (Hls.isSupported()) {
                         hls.loadSource(url); hls.attachMedia(video);
                         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                        video.src = url; video.play();
                     }
                 }
             }
 
-            const gridTv = document.getElementById('grid-tv');
-            const gridRadio = document.getElementById('grid-radio');
-            const gridCine = document.getElementById('grid-cine');
-
-            canales.forEach(canal => {
+            // Pintamos la parrilla directo desde los datos volátiles del fetch
+            datosCanales.forEach(canal => {
                 const div = document.createElement('div');
                 div.className = 'tarjeta';
-                div.innerHTML = `<img src="${canal.logo}" onerror="this.src='https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png'"><h3>${canal.nombre}</h3>`;
+                div.innerHTML = `<img src="${canal.logo}"><h3>${canal.nombre}</h3>`;
                 div.onclick = () => { reproducir(canal.url, canal.nombre, canal.categoria); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
                 if (canal.categoria === "RADIO") {
                     document.getElementById('zona-radio').style.display = "block";
-                    gridRadio.appendChild(div);
+                    document.getElementById('grid-radio').appendChild(div);
                 } else if (canal.categoria === "PELICULA") {
                     document.getElementById('zona-cine').style.display = "block";
-                    gridCine.appendChild(div);
+                    document.getElementById('grid-cine').appendChild(div);
                 } else {
                     document.getElementById('zona-tv').style.display = "block";
-                    gridTv.appendChild(div);
+                    document.getElementById('grid-tv').appendChild(div);
                 }
             });
         }
