@@ -70,11 +70,11 @@
     <div id="pantalla-bloqueo">
         <div class="login-box">
             <h2>GABO PLAY</h2>
-            <p>SISTEMA RESTRINGIDO • BÚNKER PRIVADO</p>
+            <p>SISTEMA RESTRINGIDO • AUTENTICACIÓN BACKEND</p>
             <input type="password" id="inputClave" placeholder="TOKEN DE ACCESO" maxlength="16">
             <br>
-            <button onclick="procesarToken()">DESBLOQUEAR</button>
-            <div id="mensaje-error">⚠️ Token inválido. Acceso Denegado.</div>
+            <button onclick="solicitarAcceso()">INGRESAR</button>
+            <div id="mensaje-error">⚠️ Token inválido o expirado. Acceso denegado.</div>
         </div>
     </div>
 
@@ -96,44 +96,48 @@
     </div>
 
     <script>
-        // 🎯 El token de verificación enmascarado en el código (Es el reflejo matemático de tu clave)
-        const TOKEN_MOCK = "Mzk5MQ=="; 
+        // 🎯 TU URL DE VERCEL INTEGRADA COMO ÚNICO ENLACE
+        const API_URL = "https://gaboplay-backend.vercel.app/api/canales";
 
         document.getElementById('inputClave').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') procesarToken();
+            if (e.key === 'Enter') solicitarAcceso();
         });
 
-        function procesarToken() {
-            const entrada = document.getElementById('inputClave').value;
+        function solicitarAcceso() {
+            const token = document.getElementById('inputClave').value;
             
-            // Convertimos la entrada con el mismo algoritmo reverso para comparar
-            const llaveMapeada = btoa(entrada.split('').reverse().join(''));
-
-            if (llaveMapeada === TOKEN_MOCK) {
-                sessionStorage.setItem('token_bunker_ok', 'true');
-                desbloquearBunker();
-            } else {
-                document.getElementById('mensaje-error').style.display = "block";
-                document.getElementById('inputClave').value = "";
-            }
+            // 🚀 Mandamos el token de forma remota al servidor de Python
+            fetch(`${API_URL}?token=${token}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("No autorizado");
+                    return res.json();
+                })
+                .then(canales => {
+                    // Si el servidor responde con los datos, guardamos el token de sesión y arrancamos
+                    sessionStorage.setItem('session_token_bunker', token);
+                    desbloquearBunker(canales);
+                })
+                .catch(err => {
+                    document.getElementById('mensaje-error').style.display = "block";
+                    document.getElementById('inputClave').value = "";
+                });
         }
 
-        function desbloquearBunker() {
+        function desbloquearBunker(datosCanales) {
             document.getElementById('pantalla-bloqueo').style.display = "none";
             document.getElementById('contenido-principal').style.display = "block";
-            cargarParrillaRemota();
+            inicializarEcosistema(datosCanales);
         }
 
-        // Auto-login por si refrescas la pestaña
-        if (sessionStorage.getItem('token_bunker_ok') === 'true') {
-            desbloquearBunker();
+        // Auto-login al refrescar si la sesión de la pestaña sigue activa
+        const tokenActivo = sessionStorage.getItem('session_token_bunker');
+        if (tokenActivo) {
+            fetch(`${API_URL}?token=${tokenActivo}`)
+                .then(res => res.ok ? res.json() : null)
+                .then(canales => { if(canales) desbloquearBunker(canales); });
         }
 
-        function cargarParrillaRemota() {
-            // Reconstruimos tu URL real de manera fragmentada para que ningún robot o espía la filtre por texto plano
-            const p1 = "https://gist.githubusercontent.com/Little-Ted1/";
-            const p2 = "6014d44d3fa5904f80bdc8eb0f33794e/raw/channels.json";
-            
+        function inicializarEcosistema(canales) {
             const video = document.getElementById('videoPlayer');
             const hls = new Hls();
 
@@ -154,30 +158,27 @@
                 }
             }
 
-            fetch(p1 + p2 + "?time=" + Date.now())
-                .then(res => res.json())
-                .then(canales => {
-                    canales.forEach(canal => {
-                        const div = document.createElement('div');
-                        div.className = 'tarjeta';
-                        div.innerHTML = `<img src="${canal.logo}" onerror="this.src='https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png'"><h3>${canal.nombre}</h3>`;
-                        div.onclick = () => { reproducir(canal.url, canal.nombre, canal.categoria); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+            const gridTv = document.getElementById('grid-tv');
+            const gridRadio = document.getElementById('grid-radio');
+            const gridCine = document.getElementById('grid-cine');
 
-                        if (canal.categoria === "RADIO") {
-                            document.getElementById('zona-radio').style.display = "block";
-                            document.getElementById('grid-radio').appendChild(div);
-                        } else if (canal.categoria === "PELICULA") {
-                            document.getElementById('zona-cine').style.display = "block";
-                            document.getElementById('grid-cine').appendChild(div);
-                        } else {
-                            document.getElementById('zona-tv').style.display = "block";
-                            document.getElementById('grid-tv').appendChild(div);
-                        }
-                    });
-                })
-                .catch(err => {
-                    document.getElementById('canalActual').innerText = "⚠️ Error de conexión con el búnker remoto.";
-                });
+            canales.forEach(canal => {
+                const div = document.createElement('div');
+                div.className = 'tarjeta';
+                div.innerHTML = `<img src="${canal.logo}" onerror="this.src='https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png'"><h3>${canal.nombre}</h3>`;
+                div.onclick = () => { reproducir(canal.url, canal.nombre, canal.categoria); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+                if (canal.categoria === "RADIO") {
+                    document.getElementById('zona-radio').style.display = "block";
+                    gridRadio.appendChild(div);
+                } else if (canal.categoria === "PELICULA") {
+                    document.getElementById('zona-cine').style.display = "block";
+                    gridCine.appendChild(div);
+                } else {
+                    document.getElementById('zona-tv').style.display = "block";
+                    gridTv.appendChild(div);
+                }
+            });
         }
     </script>
 </body>
