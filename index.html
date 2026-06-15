@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GABO PLAY - SUITE WEB</title>
+    <!-- 📺 Motor HLS para reproducir streaming m3u8 en navegadores de PC -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #1e1e1e;
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 3px solid #FF3333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #FF3333;
+            font-weight: bold;
+        }
+        header h1 span {
+            color: #ffffff;
+            font-size: 14px;
+            margin-left: 10px;
+            letter-spacing: 2px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        /* 🎬 Contenedor del Reproductor Cine */
+        .player-box {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        video {
+            width: 100%;
+            max-height: 500px;
+            background-color: #000000;
+            border-radius: 4px;
+        }
+        #canalActual {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #cccccc;
+        }
+        /* 📊 Parrilla de Canales Cuadrícula */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+        .tarjeta {
+            background-color: #1e1e1e;
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            border: 2px solid transparent;
+        }
+        .tarjeta:hover {
+            transform: scale(1.05);
+            border-color: #FF3333;
+        }
+        .tarjeta img {
+            width: 100%;
+            height: 90px;
+            object-fit: contain;
+            margin-bottom: 8px;
+            background-color: #141414;
+            border-radius: 4px;
+        }
+        .tarjeta h3 {
+            margin: 5px 0 0 0;
+            font-size: 15px;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>GABO PLAY <span>SUITE WEB</span></h1>
+    </header>
+
+    <div class="container">
+        <!-- Zona de Video Principal -->
+        <div class="player-box">
+            <video id="videoPlayer" controls autoplay poster="https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png"></video>
+            <h2 id="canalActual">Selecciona un canal para sintonizar... 📡</h2>
+        </div>
+
+        <!-- Secciones de Contenido -->
+        <h2 style="border-left: 4px solid #FF3333; padding-left: 10px; font-size: 20px;">PARRILLA MULTIMEDIA</h2>
+        <div class="grid" id="contenedorCanales"></div>
+    </div>
+
+    <script>
+        // 🎯 APUNTAMOS A TU GIST REAL (Mismo de tu TV y Móvil)
+        const urlGist = "https://gist.githubusercontent.com/Little-Ted1/6014d44d3fa5904f80bdc8eb0f33794e/raw/channels.json?time=" + Date.now();
+        const video = document.getElementById('videoPlayer');
+        const hls = new Hls();
+
+        function reproducir(url, nombre) {
+            document.getElementById('canalActual').innerText = "Sintonizando: " + nombre + " ⚡";
+            
+            if (Hls.isSupported()) {
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play();
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // Soporte nativo para navegadores como Safari (Apple)
+                video.src = url;
+                video.play();
+            }
+        }
+
+        // 🧠 Inyección dinámica por JavaScript de tus canales de GitHub
+        fetch(urlGist)
+            .then(res => res.json())
+            .then(canales => {
+                const contenedor = document.getElementById('contenedorCanales');
+                canales.forEach(canal => {
+                    const div = document.createElement('div');
+                    div.className = 'tarjeta';
+                    div.innerHTML = `
+                        <img src="${canal.logo}" onerror="this.src='https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png'">
+                        <h3>${canal.nombre}</h3>
+                    `;
+                    div.onclick = () => {
+                        reproducir(canal.url, canal.nombre);
+                        window.scrollTo({ top: 0, behavior: 'smooth' }); // Sube la pantalla al reproductor suavemente
+                    };
+                    contenedor.appendChild(div);
+                });
+            })
+            .catch(err => {
+                console.error("Error cargando búnker de canales:", err);
+                document.getElementById('canalActual').innerText = "⚠️ Error al conectar con la parrilla de canales.";
+            });
+    </script>
+</body>
+</html>
