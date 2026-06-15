@@ -4,227 +4,194 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GABO PLAY - SUITE WEB</title>
-    <!-- 📺 Motor HLS para streaming -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         body {
             background-color: #0c0c0c;
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #141414;
-            padding: 15px 20px;
-            border-bottom: 2px solid #FF3333;
-        }
-        header h1 {
-            margin: 0;
-            font-size: 22px;
-            color: #FF3333;
-            font-weight: bold;
-        }
-        header h1 span {
-            color: #ffffff;
-            font-size: 13px;
-            margin-left: 10px;
-            letter-spacing: 2px;
-        }
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        /* 🎬 Caja del Reproductor Unificado */
-        .player-box {
-            background-color: #141414;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 35px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.7);
-            text-align: center;
-        }
-        .video-container {
-            width: 100%;
-            max-width: 850px;
-            margin: 0 auto;
-            position: relative;
-            background-color: #000000;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        video {
-            width: 100%;
-            display: block;
-            max-height: 480px;
-        }
-        #canalActual {
-            margin: 15px 0 5px 0;
-            font-size: 18px;
-            color: #ffffff;
-            font-weight: 600;
+            margin: 0; padding: 0;
         }
         
-        /* 🗂️ Títulos de Categorías Organizadas */
-        .seccion-titulo {
-            border-left: 4px solid #FF3333;
-            padding-left: 12px;
-            font-size: 19px;
-            margin-top: 35px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        /* 🔐 PANTALLA DE LOGEO / CANDADO */
+        #pantalla-bloqueo {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0c0c0c;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999;
         }
-        
-        /* 📊 Cuadrícula de las Filas */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 18px;
-            margin-bottom: 20px;
-        }
-        .tarjeta {
+        .login-box {
             background-color: #141414;
-            border-radius: 6px;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
-            border: 1px solid #222222;
+            padding: 40px; border-radius: 8px; border: 2px solid #222222;
+            text-align: center; box-shadow: 0 4px 25px rgba(0,0,0,0.8);
+            max-width: 350px; width: 100%;
         }
-        .tarjeta:hover {
-            transform: scale(1.04);
-            background-color: #1c1c1c;
-            border-color: #FF3333;
+        .login-box h2 { color: #FF3333; margin-bottom: 20px; font-size: 24px; letter-spacing: 1px; }
+        .login-box p { color: #888888; font-size: 14px; margin-bottom: 25px; }
+        .login-box input {
+            width: 85%; padding: 12px; background-color: #0c0c0c; border: 1px solid #444444;
+            color: white; font-size: 18px; text-align: center; border-radius: 4px; outline: none;
+            margin-bottom: 20px; letter-spacing: 3px;
         }
-        .tarjeta img {
-            width: 100%;
-            height: 85px;
-            object-fit: contain;
-            margin-bottom: 8px;
-            background-color: #0a0a0a;
-            border-radius: 4px;
+        .login-box input:focus { border-color: #FF3333; }
+        .login-box button {
+            background-color: #FF3333; color: white; border: none; padding: 12px 30px;
+            font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer;
+            transition: background 0.2s;
         }
-        .tarjeta h3 {
-            margin: 5px 0 0 0;
-            font-size: 14px;
-            color: #dddddd;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        /* 🎯 OCULTAR EL PUNTITO DE AVANCE Y LA BARRA DE TIEMPO (Para streams en vivo) */
+        .login-box button:hover { background-color: #cc2424; }
+        #mensaje-error { color: #FF3333; font-size: 14px; margin-top: 15px; display: none; }
+
+        /* 📺 INTERFAZ PRINCIPAL */
+        #contenido-principal { display: none; }
+        header { background-color: #141414; padding: 15px 20px; border-bottom: 2px solid #FF3333; }
+        header h1 { margin: 0; font-size: 22px; color: #FF3333; font-weight: bold; }
+        header h1 span { color: #ffffff; font-size: 13px; margin-left: 10px; letter-spacing: 2px; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 20px; }
+        .player-box { background-color: #141414; padding: 15px; border-radius: 8px; margin-bottom: 35px; box-shadow: 0 4px 20px rgba(0,0,0,0.7); text-align: center; }
+        .video-container { width: 100%; max-width: 850px; margin: 0 auto; position: relative; background-color: #000000; border-radius: 6px; overflow: hidden; }
+        video { width: 100%; display: block; max-height: 480px; }
         video::-webkit-media-controls-timeline,
         video::-webkit-media-controls-current-time-display,
-        video::-webkit-media-controls-time-remaining-display {
-            display: none !important;
-        }
-
-        /* Reacomoda los botones restantes (Play y Volumen) para que se vean centrados y limpios */
-        video::-webkit-media-controls-panel {
-            padding: 0 20px !important;
-        }
+        video::-webkit-media-controls-time-remaining-display { display: none !important; }
+        video::-webkit-media-controls-panel { padding: 0 20px !important; }
+        #canalActual { margin: 15px 0 5px 0; font-size: 18px; color: #ffffff; font-weight: 600; }
+        .seccion-titulo { border-left: 4px solid #FF3333; padding-left: 12px; font-size: 19px; margin-top: 35px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; margin-bottom: 20px; }
+        .tarjeta { background-color: #141414; border-radius: 6px; padding: 12px; text-align: center; cursor: pointer; transition: transform 0.2s, background-color 0.2s; border: 1px solid #222222; }
+        .tarjeta:hover { transform: scale(1.04); background-color: #1c1c1c; border-color: #FF3333; }
+        .tarjeta img { width: 100%; height: 85px; object-fit: contain; margin-bottom: 8px; background-color: #0a0a0a; border-radius: 4px; }
+        .tarjeta h3 { margin: 5px 0 0 0; font-size: 14px; color: #dddddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>GABO PLAY <span>SUITE WEB</span></h1>
-    </header>
+    <div id="pantalla-bloqueo">
+        <div class="login-box">
+            <h2>GABO PLAY</h2>
+            <p>SISTEMA RESTRINGIDO • DECRIPCIÓN REQUIERE TOKEN</p>
+            <input type="password" id="inputClave" placeholder="TOKEN DE ACCESO" maxlength="16">
+            <br>
+            <button onclick="procesarToken()">DESBLOQUEAR</button>
+            <div id="mensaje-error">⚠️ Token inválido. Imposible descifrar datos.</div>
+        </div>
+    </div>
 
-    <div class="container">
-        <!-- Zona del Reproductor Principal -->
-        <div class="player-box">
-            <div class="video-container">
-                <video id="videoPlayer" controls autoplay poster="https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png"></video>
+    <div id="contenido-principal">
+        <header>
+            <h1>GABO PLAY <span>SUITE WEB</span></h1>
+        </header>
+        <div class="container">
+            <div class="player-box">
+                <div class="video-container">
+                    <video id="videoPlayer" controls autoplay poster="https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png"></video>
+                </div>
+                <h2 id="canalActual">Selecciona un canal o emisora para sintonizar... 📡</h2>
             </div>
-            <h2 id="canalActual">Selecciona un canal o emisora para sintonizar... 📡</h2>
-        </div>
-
-        <!-- 📺 CATEGORÍA 1: TELEVISIÓN -->
-        <div id="zona-tv" style="display: none;">
-            <h2 class="seccion-titulo">📺 Canales de Televisión</h2>
-            <div class="grid" id="grid-tv"></div>
-        </div>
-
-        <!-- 📻 CATEGORÍA 2: RADIOS FM -->
-        <div id="zona-radio" style="display: none;">
-            <h2 class="seccion-titulo">📻 Emisoras de Radio FM</h2>
-            <div class="grid" id="grid-radio"></div>
-        </div>
-
-        <!-- 🎬 CATEGORÍA 3: CINE / DRIVE -->
-        <div id="zona-cine" style="display: none;">
-            <h2 class="seccion-titulo">🎬 Mi Cine en Casa</h2>
-            <div class="grid" id="grid-cine"></div>
+            <div id="zona-tv" style="display: none;"><h2 class="seccion-titulo">📺 Canales de Televisión</h2><div class="grid" id="grid-tv"></div></div>
+            <div id="zona-radio" style="display: none;"><h2 class="seccion-titulo">📻 Emisoras de Radio FM</h2><div class="grid" id="grid-radio"></div></div>
+            <div id="zona-cine" style="display: none;"><h2 class="seccion-titulo">🎬 Mi Cine en Casa</h2><div class="grid" id="grid-cine"></div></div>
         </div>
     </div>
 
     <script>
-        const urlGist = "https://gist.githubusercontent.com/Little-Ted1/6014d44d3fa5904f80bdc8eb0f33794e/raw/channels.json?time=" + Date.now();
-        const video = document.getElementById('videoPlayer');
-        const hls = new Hls();
+        // 🎯 CADENA DE LA URL DE TUS CANALES TOTALMENTE ENCRIPTADA CON AES (Usando clave "1993")
+        // Si alguien inspecciona el código, solo verá este bloque de texto sin sentido:
+        const URL_ENCRIPTADA = "U2FsdGVkX19HHe/DBlRjCWe/9Y2Z6K9z1vD0w/O82YcInO3LIDqXQv0DkM99eL6vN81tFInX5uK60vI4gq8z7D3sC+oWzI/qR6zYp4AAtn/2f9wXWfU7K8Z2oD3e8X3u";
 
-        function reproducir(url, nombre, categoria) {
-            // Cambiamos el letrero con el icono correspondiente
-            const icono = categoria === "RADIO" ? "📻" : (categoria === "PELICULA" ? "🎬" : "📺");
-            document.getElementById('canalActual').innerText = "Sintonizando: " + nombre + " " + icono + " ⚡";
-            
-            hls.detachMedia();
-            video.src = "";
+        document.getElementById('inputClave').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') procesarToken();
+        });
 
-            if (categoria === "RADIO" || url.includes("mp3") || url.includes("aac") || !url.includes(".m3u8")) {
-                // Para las radios usamos la misma ventana negra estética, eliminando el reproductor blanco deforme
-                video.src = url;
-                video.play().catch(err => console.log("Interacción requerida"));
-            } else {
-                if (Hls.isSupported()) {
-                    hls.loadSource(url);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        video.play();
-                    });
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = url;
-                    video.play();
+        function procesarToken() {
+            const token = document.getElementById('inputClave').value;
+            try {
+                // Intentamos descifrar la URL usando el token introducido por el usuario
+                const bytes = CryptoJS.AES.decrypt(URL_ENCRIPTADA, token);
+                const urlDescifrada = bytes.toString(CryptoJS.enc.Utf8);
+
+                // Si el token es correcto, la URL recuperará su forma "https://..."
+                if (urlDescifrada.startsWith("https://")) {
+                    sessionStorage.setItem('token_bunker', token);
+                    desbloquearBunker(urlDescifrada);
+                } else {
+                    mostrarError();
                 }
+            } catch (e) {
+                mostrarError();
             }
         }
 
-        // Clasificación y renderizado por filas idéntico a Leanback TV
-        fetch(urlGist)
-            .then(res => res.json())
-            .then(canales => {
-                canales.forEach(canal => {
-                    const div = document.createElement('div');
-                    div.className = 'tarjeta';
-                    div.innerHTML = `
-                        <img src="${canal.logo}" onerror="this.src='https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png'">
-                        <h3>${canal.nombre}</h3>
-                    `;
-                    div.onclick = () => {
-                        reproducir(canal.url, canal.nombre, canal.categoria);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    };
+        function mostrarError() {
+            document.getElementById('mensaje-error').style.display = "block";
+            document.getElementById('inputClave').value = "";
+        }
 
-                    // Clasificamos en la fila correcta según su categoría del JSON
-                    if (canal.categoria === "RADIO") {
-                        document.getElementById('zona-radio').style.display = "block";
-                        document.getElementById('grid-radio').appendChild(div);
-                    } else if (canal.categoria === "PELICULA") {
-                        document.getElementById('zona-cine').style.display = "block";
-                        document.getElementById('grid-cine').appendChild(div);
-                    } else {
-                        document.getElementById('zona-tv').style.display = "block";
-                        document.getElementById('grid-tv').appendChild(div);
+        function desbloquearBunker(urlReal) {
+            document.getElementById('pantalla-bloqueo').style.display = "none";
+            document.getElementById('contenido-principal').style.display = "block";
+            cargarParrillaRemota(urlReal);
+        }
+
+        // Auto-login si la pestaña sigue abierta
+        const tokenGuardado = sessionStorage.getItem('token_bunker');
+        if (tokenGuardado) {
+            try {
+                const bytes = CryptoJS.AES.decrypt(URL_ENCRIPTADA, tokenGuardado);
+                const urlDescifrada = bytes.toString(CryptoJS.enc.Utf8);
+                if (urlDescifrada.startsWith("https://")) desbloquearBunker(urlDescifrada);
+            } catch(e) {}
+        }
+
+        function cargarParrillaRemota(urlCanalesClean) {
+            const video = document.getElementById('videoPlayer');
+            const hls = new Hls();
+
+            window.reproducir = function(url, nombre, categoria) {
+                const icono = categoria === "RADIO" ? "📻" : (categoria === "PELICULA" ? "🎬" : "📺");
+                document.getElementById('canalActual').innerText = "Sintonizando: " + nombre + " " + icono + " ⚡";
+                hls.detachMedia(); video.src = "";
+
+                if (categoria === "RADIO" || url.includes("mp3") || url.includes("aac") || !url.includes(".m3u8")) {
+                    video.src = url; video.play().catch(o => {});
+                } else {
+                    if (Hls.isSupported()) {
+                        hls.loadSource(url); hls.attachMedia(video);
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = url; video.play();
                     }
+                }
+            }
+
+            // Agregamos timestamp anti-caché a la URL ya descifrada limpiamente
+            fetch(urlCanalesClean + "?time=" + Date.now())
+                .then(res => res.json())
+                .then(canales => {
+                    canales.forEach(canal => {
+                        const div = document.createElement('div');
+                        div.className = 'tarjeta';
+                        div.innerHTML = `<img src="${canal.logo}" onerror="this.src='https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png'"><h3>${canal.nombre}</h3>`;
+                        div.onclick = () => { reproducir(canal.url, canal.nombre, canal.categoria); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+                        if (canal.categoria === "RADIO") {
+                            document.getElementById('zona-radio').style.display = "block";
+                            document.getElementById('grid-radio').appendChild(div);
+                        } else if (canal.categoria === "PELICULA") {
+                            document.getElementById('zona-cine').style.display = "block";
+                            document.getElementById('grid-cine').appendChild(div);
+                        } else {
+                            document.getElementById('zona-tv').style.display = "block";
+                            document.getElementById('grid-tv').appendChild(div);
+                        }
+                    });
+                })
+                .catch(err => {
+                    document.getElementById('canalActual').innerText = "⚠️ Error de conexión con el búnker cifrado.";
                 });
-            })
-            .catch(err => {
-                console.error("Error:", err);
-                document.getElementById('canalActual').innerText = "⚠️ Error al conectar con el búnker de canales.";
-            });
+        }
     </script>
 </body>
 </html>
