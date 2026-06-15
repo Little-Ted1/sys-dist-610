@@ -4,92 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GABO PLAY - SUITE WEB</title>
-    <!-- 📺 Motor HLS para reproducir streaming m3u8 en navegadores de PC -->
+    <!-- 📺 Motor HLS para streaming -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         body {
-            background-color: #121212;
+            background-color: #0c0c0c;
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
         }
         header {
-            background-color: #1e1e1e;
+            background-color: #141414;
             padding: 15px 20px;
-            text-align: left;
-            border-bottom: 3px solid #FF3333;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            border-bottom: 2px solid #FF3333;
         }
         header h1 {
             margin: 0;
-            font-size: 24px;
+            font-size: 22px;
             color: #FF3333;
             font-weight: bold;
         }
         header h1 span {
             color: #ffffff;
-            font-size: 14px;
+            font-size: 13px;
             margin-left: 10px;
             letter-spacing: 2px;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
             padding: 20px;
         }
-        /* 🎬 Contenedor del Reproductor Cine */
+        /* 🎬 Caja del Reproductor Unificado */
         .player-box {
-            background-color: #1a1a1a;
+            background-color: #141414;
             padding: 15px;
             border-radius: 8px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            margin-bottom: 35px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+            text-align: center;
+        }
+        .video-container {
+            width: 100%;
+            max-width: 850px;
+            margin: 0 auto;
+            position: relative;
+            background-color: #000000;
+            border-radius: 6px;
+            overflow: hidden;
         }
         video {
             width: 100%;
-            max-height: 500px;
-            background-color: #000000;
-            border-radius: 4px;
+            display: block;
+            max-height: 480px;
         }
         #canalActual {
-            margin-top: 10px;
+            margin: 15px 0 5px 0;
             font-size: 18px;
-            color: #cccccc;
+            color: #ffffff;
+            font-weight: 600;
         }
-        /* 📊 Parrilla de Canales Cuadrícula */
+        
+        /* 🗂️ Títulos de Categorías Organizadas */
+        .seccion-titulo {
+            border-left: 4px solid #FF3333;
+            padding-left: 12px;
+            font-size: 19px;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 📊 Cuadrícula de las Filas */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 18px;
+            margin-bottom: 20px;
         }
         .tarjeta {
-            background-color: #1e1e1e;
+            background-color: #141414;
             border-radius: 6px;
             padding: 12px;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
-            border: 2px solid transparent;
+            transition: transform 0.2s, background-color 0.2s;
+            border: 1px solid #222222;
         }
         .tarjeta:hover {
-            transform: scale(1.05);
+            transform: scale(1.04);
+            background-color: #1c1c1c;
             border-color: #FF3333;
         }
         .tarjeta img {
             width: 100%;
-            height: 90px;
+            height: 85px;
             object-fit: contain;
             margin-bottom: 8px;
-            background-color: #141414;
+            background-color: #0a0a0a;
             border-radius: 4px;
         }
         .tarjeta h3 {
             margin: 5px 0 0 0;
-            font-size: 15px;
-            color: #ffffff;
+            font-size: 14px;
+            color: #dddddd;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -103,39 +123,51 @@
     </header>
 
     <div class="container">
-        <!-- Zona de Video Principal -->
+        <!-- Zona del Reproductor Principal -->
         <div class="player-box">
-            <video id="videoPlayer" controls autoplay poster="https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png"></video>
-            <h2 id="canalActual">Selecciona un canal para sintonizar... 📡</h2>
+            <div class="video-container">
+                <video id="videoPlayer" controls autoplay poster="https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png"></video>
+            </div>
+            <h2 id="canalActual">Selecciona un canal o emisora para sintonizar... 📡</h2>
         </div>
 
-        <!-- Secciones de Contenido -->
-        <h2 style="border-left: 4px solid #FF3333; padding-left: 10px; font-size: 20px;">PARRILLA MULTIMEDIA</h2>
-        <div class="grid" id="contenedorCanales"></div>
+        <!-- 📺 CATEGORÍA 1: TELEVISIÓN -->
+        <div id="zona-tv" style="display: none;">
+            <h2 class="seccion-titulo">📺 Canales de Televisión</h2>
+            <div class="grid" id="grid-tv"></div>
+        </div>
+
+        <!-- 📻 CATEGORÍA 2: RADIOS FM -->
+        <div id="zona-radio" style="display: none;">
+            <h2 class="seccion-titulo">📻 Emisoras de Radio FM</h2>
+            <div class="grid" id="grid-radio"></div>
+        </div>
+
+        <!-- 🎬 CATEGORÍA 3: CINE / DRIVE -->
+        <div id="zona-cine" style="display: none;">
+            <h2 class="seccion-titulo">🎬 Mi Cine en Casa</h2>
+            <div class="grid" id="grid-cine"></div>
+        </div>
     </div>
 
     <script>
-        // 🎯 Tu base de datos central en la nube
         const urlGist = "https://gist.githubusercontent.com/Little-Ted1/6014d44d3fa5904f80bdc8eb0f33794e/raw/channels.json?time=" + Date.now();
         const video = document.getElementById('videoPlayer');
         const hls = new Hls();
 
         function reproducir(url, nombre, categoria) {
-            document.getElementById('canalActual').innerText = "Sintonizando: " + nombre + " ⚡";
+            // Cambiamos el letrero con el icono correspondiente
+            const icono = categoria === "RADIO" ? "📻" : (categoria === "PELICULA" ? "🎬" : "📺");
+            document.getElementById('canalActual').innerText = "Sintonizando: " + nombre + " " + icono + " ⚡";
             
-            // 🛑 PASO 1: Frenamos cualquier transmisión HLS previa para que no se crucen los cables
             hls.detachMedia();
             video.src = "";
 
-            // 📻 PASO 2: Si el canal es de categoría RADIO o el link termina en mp3/aac, lo reproducimos de forma nativa
             if (categoria === "RADIO" || url.includes("mp3") || url.includes("aac") || !url.includes(".m3u8")) {
-                console.log("Detectada señal de audio para: " + nombre);
+                // Para las radios usamos la misma ventana negra estética, eliminando el reproductor blanco deforme
                 video.src = url;
-                video.play().catch(err => console.log("Espera de interacción del usuario..."));
-            } 
-            // 📺 PASO 3: Si es televisión o cine (.m3u8), encendemos el motor HLS.js
-            else {
-                console.log("Detectada señal de video HLS para: " + nombre);
+                video.play().catch(err => console.log("Interacción requerida"));
+            } else {
                 if (Hls.isSupported()) {
                     hls.loadSource(url);
                     hls.attachMedia(video);
@@ -149,11 +181,10 @@
             }
         }
 
-        // 🧠 Inyección dinámica leyendo la categoría de tu JSON
+        // Clasificación y renderizado por filas idéntico a Leanback TV
         fetch(urlGist)
             .then(res => res.json())
             .then(canales => {
-                const contenedor = document.getElementById('contenedorCanales');
                 canales.forEach(canal => {
                     const div = document.createElement('div');
                     div.className = 'tarjeta';
@@ -161,18 +192,27 @@
                         <img src="${canal.logo}" onerror="this.src='https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png'">
                         <h3>${canal.nombre}</h3>
                     `;
-                    
-                    // 🎯 CLAVE: Ahora le pasamos la categoría ("TELEVISION", "RADIO" o "PELICULA") a la función reproducir
                     div.onclick = () => {
                         reproducir(canal.url, canal.nombre, canal.categoria);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     };
-                    contenedor.appendChild(div);
+
+                    // Clasificamos en la fila correcta según su categoría del JSON
+                    if (canal.categoria === "RADIO") {
+                        document.getElementById('zona-radio').style.display = "block";
+                        document.getElementById('grid-radio').appendChild(div);
+                    } else if (canal.categoria === "PELICULA") {
+                        document.getElementById('zona-cine').style.display = "block";
+                        document.getElementById('grid-cine').appendChild(div);
+                    } else {
+                        document.getElementById('zona-tv').style.display = "block";
+                        document.getElementById('grid-tv').appendChild(div);
+                    }
                 });
             })
             .catch(err => {
-                console.error("Error cargando búnker de canales:", err);
-                document.getElementById('canalActual').innerText = "⚠️ Error al conectar con la parrilla de canales.";
+                console.error("Error:", err);
+                document.getElementById('canalActual').innerText = "⚠️ Error al conectar con el búnker de canales.";
             });
     </script>
 </body>
