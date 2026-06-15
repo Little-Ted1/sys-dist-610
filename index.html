@@ -115,28 +115,41 @@
     </div>
 
     <script>
-        // 🎯 APUNTAMOS A TU GIST REAL (Mismo de tu TV y Móvil)
+        // 🎯 Tu base de datos central en la nube
         const urlGist = "https://gist.githubusercontent.com/Little-Ted1/6014d44d3fa5904f80bdc8eb0f33794e/raw/channels.json?time=" + Date.now();
         const video = document.getElementById('videoPlayer');
         const hls = new Hls();
 
-        function reproducir(url, nombre) {
+        function reproducir(url, nombre, categoria) {
             document.getElementById('canalActual').innerText = "Sintonizando: " + nombre + " ⚡";
             
-            if (Hls.isSupported()) {
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play();
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // Soporte nativo para navegadores como Safari (Apple)
+            // 🛑 PASO 1: Frenamos cualquier transmisión HLS previa para que no se crucen los cables
+            hls.detachMedia();
+            video.src = "";
+
+            // 📻 PASO 2: Si el canal es de categoría RADIO o el link termina en mp3/aac, lo reproducimos de forma nativa
+            if (categoria === "RADIO" || url.includes("mp3") || url.includes("aac") || !url.includes(".m3u8")) {
+                console.log("Detectada señal de audio para: " + nombre);
                 video.src = url;
-                video.play();
+                video.play().catch(err => console.log("Espera de interacción del usuario..."));
+            } 
+            // 📺 PASO 3: Si es televisión o cine (.m3u8), encendemos el motor HLS.js
+            else {
+                console.log("Detectada señal de video HLS para: " + nombre);
+                if (Hls.isSupported()) {
+                    hls.loadSource(url);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        video.play();
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = url;
+                    video.play();
+                }
             }
         }
 
-        // 🧠 Inyección dinámica por JavaScript de tus canales de GitHub
+        // 🧠 Inyección dinámica leyendo la categoría de tu JSON
         fetch(urlGist)
             .then(res => res.json())
             .then(canales => {
@@ -148,9 +161,11 @@
                         <img src="${canal.logo}" onerror="this.src='https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png'">
                         <h3>${canal.nombre}</h3>
                     `;
+                    
+                    // 🎯 CLAVE: Ahora le pasamos la categoría ("TELEVISION", "RADIO" o "PELICULA") a la función reproducir
                     div.onclick = () => {
-                        reproducir(canal.url, canal.nombre);
-                        window.scrollTo({ top: 0, behavior: 'smooth' }); // Sube la pantalla al reproductor suavemente
+                        reproducir(canal.url, canal.nombre, canal.categoria);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                     };
                     contenedor.appendChild(div);
                 });
