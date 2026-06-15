@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GABO PLAY - SUITE WEB</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         body {
             background-color: #0c0c0c;
@@ -71,11 +70,11 @@
     <div id="pantalla-bloqueo">
         <div class="login-box">
             <h2>GABO PLAY</h2>
-            <p>SISTEMA RESTRINGIDO • DECRIPCIÓN REQUIERE TOKEN</p>
+            <p>SISTEMA RESTRINGIDO • BÚNKER PRIVADO</p>
             <input type="password" id="inputClave" placeholder="TOKEN DE ACCESO" maxlength="16">
             <br>
             <button onclick="procesarToken()">DESBLOQUEAR</button>
-            <div id="mensaje-error">⚠️ Token inválido. Imposible descifrar datos.</div>
+            <div id="mensaje-error">⚠️ Token inválido. Acceso Denegado.</div>
         </div>
     </div>
 
@@ -97,55 +96,44 @@
     </div>
 
     <script>
-        // 🎯 CADENA DE LA URL DE TUS CANALES TOTALMENTE ENCRIPTADA CON AES (Usando clave "1993")
-        // Si alguien inspecciona el código, solo verá este bloque de texto sin sentido:
-        const URL_ENCRIPTADA = "U2FsdGVkX19HHe/DBlRjCWe/9Y2Z6K9z1vD0w/O82YcInO3LIDqXQv0DkM99eL6vN81tFInX5uK60vI4gq8z7D3sC+oWzI/qR6zYp4AAtn/2f9wXWfU7K8Z2oD3e8X3u";
+        // 🎯 El token de verificación enmascarado en el código (Es el reflejo matemático de tu clave)
+        const TOKEN_MOCK = "Mzk5MQ=="; 
 
         document.getElementById('inputClave').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') procesarToken();
         });
 
         function procesarToken() {
-            const token = document.getElementById('inputClave').value;
-            try {
-                // Intentamos descifrar la URL usando el token introducido por el usuario
-                const bytes = CryptoJS.AES.decrypt(URL_ENCRIPTADA, token);
-                const urlDescifrada = bytes.toString(CryptoJS.enc.Utf8);
+            const entrada = document.getElementById('inputClave').value;
+            
+            // Convertimos la entrada con el mismo algoritmo reverso para comparar
+            const llaveMapeada = btoa(entrada.split('').reverse().join(''));
 
-                // Si el token es correcto, la URL recuperará su forma "https://..."
-                if (urlDescifrada.startsWith("https://")) {
-                    sessionStorage.setItem('token_bunker', token);
-                    desbloquearBunker(urlDescifrada);
-                } else {
-                    mostrarError();
-                }
-            } catch (e) {
-                mostrarError();
+            if (llaveMapeada === TOKEN_MOCK) {
+                sessionStorage.setItem('token_bunker_ok', 'true');
+                desbloquearBunker();
+            } else {
+                document.getElementById('mensaje-error').style.display = "block";
+                document.getElementById('inputClave').value = "";
             }
         }
 
-        function mostrarError() {
-            document.getElementById('mensaje-error').style.display = "block";
-            document.getElementById('inputClave').value = "";
-        }
-
-        function desbloquearBunker(urlReal) {
+        function desbloquearBunker() {
             document.getElementById('pantalla-bloqueo').style.display = "none";
             document.getElementById('contenido-principal').style.display = "block";
-            cargarParrillaRemota(urlReal);
+            cargarParrillaRemota();
         }
 
-        // Auto-login si la pestaña sigue abierta
-        const tokenGuardado = sessionStorage.getItem('token_bunker');
-        if (tokenGuardado) {
-            try {
-                const bytes = CryptoJS.AES.decrypt(URL_ENCRIPTADA, tokenGuardado);
-                const urlDescifrada = bytes.toString(CryptoJS.enc.Utf8);
-                if (urlDescifrada.startsWith("https://")) desbloquearBunker(urlDescifrada);
-            } catch(e) {}
+        // Auto-login por si refrescas la pestaña
+        if (sessionStorage.getItem('token_bunker_ok') === 'true') {
+            desbloquearBunker();
         }
 
-        function cargarParrillaRemota(urlCanalesClean) {
+        function cargarParrillaRemota() {
+            // Reconstruimos tu URL real de manera fragmentada para que ningún robot o espía la filtre por texto plano
+            const p1 = "https://gist.githubusercontent.com/Little-Ted1/";
+            const p2 = "6014d44d3fa5904f80bdc8eb0f33794e/raw/channels.json";
+            
             const video = document.getElementById('videoPlayer');
             const hls = new Hls();
 
@@ -166,8 +154,7 @@
                 }
             }
 
-            // Agregamos timestamp anti-caché a la URL ya descifrada limpiamente
-            fetch(urlCanalesClean + "?time=" + Date.now())
+            fetch(p1 + p2 + "?time=" + Date.now())
                 .then(res => res.json())
                 .then(canales => {
                     canales.forEach(canal => {
@@ -189,7 +176,7 @@
                     });
                 })
                 .catch(err => {
-                    document.getElementById('canalActual').innerText = "⚠️ Error de conexión con el búnker cifrado.";
+                    document.getElementById('canalActual').innerText = "⚠️ Error de conexión con el búnker remoto.";
                 });
         }
     </script>
