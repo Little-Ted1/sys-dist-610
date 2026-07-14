@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GABO PLAY - SUITE WEB</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body { background-color: #0c0c0c; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        header { background-color: #141414; padding: 15px 20px; border-bottom: 2px solid #FF3333; }
+        header h1 { margin: 0; font-size: 22px; color: #FF3333; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 20px; }
+        .player-box { background-color: #141414; padding: 15px; border-radius: 8px; margin-bottom: 35px; text-align: center; }
+        .video-container { width: 100%; max-width: 850px; margin: 0 auto; background-color: #000000; border-radius: 6px; overflow: hidden; }
+        video { width: 100%; display: block; max-height: 480px; }
+        video::-webkit-media-controls-timeline, video::-webkit-media-controls-current-time-display, video::-webkit-media-controls-time-remaining-display { display: none !important; }
+        video::-webkit-media-controls-panel { padding: 0 20px !important; }
+        #canalActual { margin: 15px 0 5px 0; font-size: 18px; }
+        .seccion-titulo { border-left: 4px solid #FF3333; padding-left: 12px; font-size: 19px; margin-top: 35px; text-transform: uppercase; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; margin-top: 15px; }
+        .tarjeta { background-color: #141414; border-radius: 6px; padding: 12px; text-align: center; cursor: pointer; border: 1px solid #222222; }
+        .tarjeta:hover { transform: scale(1.04); border-color: #FF3333; }
+        .tarjeta img { width: 100%; height: 85px; object-fit: contain; }
+        #mensaje-error { color: #FF3333; font-size: 16px; text-align: center; margin-top: 20px; display: none; }
+    </style>
+</head>
+<body>
+
+    <header><h1>GABO PLAY <span>SUITE WEB</span></h1></header>
+    
+    <div class="container">
+        <div class="player-box">
+            <div class="video-container">
+                <video id="videoPlayer" controls autoplay poster="https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png"></video>
+            </div>
+            <h2 id="canalActual">Selecciona transmisión... 📡</h2>
+        </div>
+        
+        <div id="mensaje-error">⚠️ Error al cargar los canales desde el búnker de GitHub.</div>
+
+        <div id="zona-tv" style="display: none;"><h2 class="seccion-titulo">📺 Televisión</h2><div class="grid" id="grid-tv"></div></div>
+        <div id="zona-radio" style="display: none;"><h2 class="seccion-titulo">📻 Radios</h2><div class="grid" id="grid-radio"></div></div>
+        <div id="zona-cine" style="display: none;"><h2 class="seccion-titulo">🎬 Cine</h2><div class="grid" id="grid-cine"></div></div>
+    </div>
+
+    <script>
+        // 🔗 TU URL DEL GIST DE GITHUB DIRECTA (CON PARÁMETRO NOCACHE)
+        const GIST_URL = "https://gist.githubusercontent.com/Little-Ted1/6014d44d3fa5904f80bdc8eb0f33794e/raw/channels.json";
+
+        // Arrancamos la carga automática al abrir la web
+        document.addEventListener("DOMContentLoaded", cargarCanales);
+
+        function cargarCanales() {
+            // Evitamos problemas de caché agregando la marca de tiempo actual
+            fetch(`${GIST_URL}?nocache=${Date.now()}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Fallo en la red");
+                    return res.json();
+                })
+                .then(canales => {
+                    inicializarEcosistema(canales);
+                })
+                .catch(err => {
+                    document.getElementById('mensaje-error').style.display = "block";
+                    console.error("Error al obtener los canales:", err);
+                });
+        }
+
+        function inicializarEcosistema(canales) {
+            const video = document.getElementById('videoPlayer');
+            const hls = new Hls();
+
+            window.reproducir = function(url, nombre, categoria) {
+                document.getElementById('canalActual').innerText = "Sintonizando: " + nombre + " ⚡";
+                hls.detachMedia(); video.src = "";
+
+                if (categoria === "RADIO" || !url.includes(".m3u8")) {
+                    video.src = url; video.play().catch(o => {});
+                } else {
+                    if (Hls.isSupported()) {
+                        hls.loadSource(url); hls.attachMedia(video);
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = url; video.play();
+                    }
+                }
+            }
+
+            // Pintamos la parrilla desde los datos obtenidos del Gist
+            canales.forEach(canal => {
+                const div = document.createElement('div');
+                div.className = 'tarjeta';
+                div.innerHTML = `<img src="${canal.logo}" onerror="this.src='https://raw.githubusercontent.com/Little-Ted1/sys-dist-801/main/gabo_tv_banner.png'"><h3>${canal.nombre}</h3>`;
+                div.onclick = () => { reproducir(canal.url, canal.nombre, canal.categoria); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+                if (canal.categoria === "RADIO") {
+                    document.getElementById('zona-radio').style.display = "block";
+                    document.getElementById('grid-radio').appendChild(div);
+                } else if (canal.categoria === "PELICULA") {
+                    document.getElementById('zona-cine').style.display = "block";
+                    document.getElementById('grid-cine').appendChild(div);
+                } else {
+                    document.getElementById('zona-tv').style.display = "block";
+                    document.getElementById('grid-tv').appendChild(div);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
